@@ -1,3 +1,34 @@
+This repo is now deprecated. In the time since it created [TypeScript support](https://facebook.github.io/create-react-app/docs/adding-typescript) is now a default feature of [Create React App](https://facebook.github.io/create-react-app/), [Next.JS](https://nextjs.org) and [Razzle](https://github.com/jaredpalmer/razzle). 
+
+This means you can get started with:
+
+```sh
+# Creates an app called my-app
+npx create-react-app my-app --typescript
+
+cd my-app
+
+# Adds the type definitions
+npm install --save typescript @types/node @types/react @types/react-dom @types/jest
+
+echo "Good to go :tada:"
+```
+
+This repo offers some exmples on how to take that project into production and handle testing and state. However, you can
+also use the official documentation in the Create React App website for that. 
+
+If you'd like to know more about how to effectively do React with TypeScript, we recommend looking at the following:
+
+- [React+TypeScript Cheatsheets](https://github.com/typescript-cheatsheets/react-typescript-cheatsheet#reacttypescript-cheatsheets)
+- [React & Redux in TypeScript - Static Typing Guide](https://github.com/piotrwitek/react-redux-typescript-guide#react--redux-in-typescript---static-typing-guide)
+- [Use TypeScript to develop React applications](https://egghead.io/courses/use-typescript-to-develop-react-applications)
+- [Ultimate React Component Patterns with Typescript 2.8](https://levelup.gitconnected.com/ultimate-react-component-patterns-with-typescript-2-8-82990c516935)
+
+
+Below is the original README for this sample.
+
+---
+
 # TypeScript React Starter
 
 This quick start guide will teach you how to wire up TypeScript with [React](http://facebook.github.io/react/).
@@ -37,22 +68,61 @@ At this point, your project layout should look like the following:
 ```text
 my-app/
 ├─ .gitignore
+├─ images.d.ts
 ├─ node_modules/
 ├─ public/
 ├─ src/
 │  └─ ...
 ├─ package.json
 ├─ tsconfig.json
+├─ tsconfig.prod.json
+├─ tsconfig.test.json
 └─ tslint.json
 ```
 
 Of note:
 
 * `tsconfig.json` contains TypeScript-specific options for our project.
+  * We also have a `tsconfig.prod.json` and a `tsconfig.test.json` in case we want to make any tweaks to our production builds, or our test builds.
 * `tslint.json` stores the settings that our linter, [TSLint](https://github.com/palantir/tslint), will use.
 * `package.json` contains our dependencies, as well as some shortcuts for commands we'd like to run for testing, previewing, and deploying our app.
 * `public` contains static assets like the HTML page we're planning to deploy to, or images. You can delete any file in this folder apart from `index.html`.
 * `src` contains our TypeScript and CSS code. `index.tsx` is the entry-point for our file, and is mandatory.
+* `images.d.ts` will tell TypeScript that certain types of image files can be `import`-ed, which create-react-app supports.
+
+# Setting up source control
+
+Our testing tool, Jest, expects some form of source control (such as Git or Mercurial) to be present.
+For it to run correctly, we'll need to initialize a git repository.
+
+```sh
+git init
+git add .
+git commit -m "Initial commit."
+```
+
+> Note: if you've cloned this repository, you won't have to run the above at all.
+
+# Overriding defaults
+
+The TSLint configuration that react-scripts-ts sets us up with is a bit overzealous.
+Let's fix that up.
+
+```diff
+ {
+-  "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier"],
++  "extends": [],
++  "defaultSeverity": "warning",
+   "linterOptions": {
+     "exclude": [
+       "config/**/*.js",
+       "node_modules/**/*.ts"
+     ]
+   }
+ }
+```
+
+[Configuring TSLint](https://palantir.github.io/tslint/usage/configuration/) is out of the scope of this starter, but you should feel free to experiment with something that works for you.
 
 # Running the project
 
@@ -100,7 +170,7 @@ but it is useful if you need to measure things like the final size of your app.
 # Creating a component
 
 We're going to write a `Hello` component.
-The component will take the name of whatever we want to greet (which we'll call `name`), and optionally the number of exclamation marks to trail with (`enthusiasmLevel`).
+The component will take the name of whoever we want to greet (which we'll call `name`), and optionally, the number of exclamation marks to trail with (`enthusiasmLevel`).
 
 When we write something like `<Hello name="Daniel" enthusiasmLevel={3} />`, the component should render to something like `<div>Hello Daniel!!!</div>`.
 If `enthusiasmLevel` isn't specified, the component should default to showing one exclamation mark.
@@ -145,7 +215,7 @@ Notice that we defined a type named `Props` that specifies the properties our co
 `name` is a required `string`, and `enthusiasmLevel` is an optional `number` (which you can tell from the `?` that we wrote out after its name).
 
 We also wrote `Hello` as a stateless function component (an SFC).
-To be specific, `Hello` is a function that takes a `Props` object, and destructures it.
+To be specific, `Hello` is a function that takes a `Props` object, and picks apart (or "destructures") all the properties that it will be passed.
 If `enthusiasmLevel` isn't given in our `Props` object, it will default to `1`.
 
 Writing functions is one of two primary [ways React allows us to make components]((https://facebook.github.io/react/docs/components-and-props.html#functional-and-class-components)).
@@ -171,10 +241,13 @@ class Hello extends React.Component<Props, object> {
 }
 ```
 
-Classes are useful [when our component instances have some state](https://facebook.github.io/react/docs/state-and-lifecycle.html).
-But we don't really need to think about state in this example - in fact, we specified it as `object` in `React.Component<Props, object>`, so writing an SFC tends to be shorter.
-Local component state is more useful at the presentational level when creating generic UI elements that can be shared between libraries.
-For our application's lifecycle, we will revisit how applications manage general state with Redux in a bit.
+Classes are useful [when our component instances have some state or need to handle lifecycle hooks](https://facebook.github.io/react/docs/state-and-lifecycle.html).
+But we don't really need to think about state in this specific example - in fact, we specified it as `object` in `React.Component<Props, object>`, so writing an SFC makes more sense here, but it's important to know how to write a class component.
+
+Notice that the class extends `React.Component<Props, object>`.
+The TypeScript-specific bit here are the type arguments we're passing to `React.Component`: `Props` and `object`.
+Here, `Props` is the type of our class's `this.props`, and `object` is the type of `this.state`.
+We'll return to component state in a bit.
 
 Now that we've written our component, let's dive into `index.tsx` and replace our render of `<App />` with a render of `<Hello ... />`.
 
@@ -195,16 +268,96 @@ ReactDOM.render(
 
 ## Type assertions
 
-One final thing we'll point out in this section is the line `document.getElementById('root') as HTMLElement`.
+One thing we'll point out in this section is the line `document.getElementById('root') as HTMLElement`.
 This syntax is called a *type assertion*, sometimes also called a *cast*.
 This is a useful way of telling TypeScript what the real type of an expression is when you know better than the type checker.
 
 The reason we need to do so in this case is that `getElementById`'s return type is `HTMLElement | null`.
 Put simply, `getElementById` returns `null` when it can't find an element with a given `id`.
-We're assuming that `getElementById` will actually succeed, so we need convince TypeScript of that using the `as` syntax.
+We're assuming that `getElementById` will actually succeed, so we need to convince TypeScript of that using the `as` syntax.
 
 TypeScript also has a trailing "bang" syntax (`!`), which removes `null` and `undefined` from the prior expression.
 So we *could* have written `document.getElementById('root')!`, but in this case we wanted to be a bit more explicit.
+
+## Stateful components
+
+We mentioned earlier that our component didn't need state.
+What if we wanted to be able to update our components based on user interaction over time?
+At that point, state becomes more important.
+
+Deeply understanding best practices around component state in React are out of the scope of this starter, but let's quickly peek at a *stateful* version of our `Hello` component to see what adding state looks like.
+We're going to render two `<button>`s which update the number of exclamation marks that a `Hello` component displays.
+
+To do that, we're going to
+
+1. Define a type for our state (i.e. `this.state`)
+1. Initialize `this.state` based on the props we're given in our constructor.
+1. Create two event handlers for our buttons (`onIncrement` and `onDecrement`).
+
+```ts
+// src/components/StatefulHello.tsx
+
+import * as React from "react";
+
+export interface Props {
+  name: string;
+  enthusiasmLevel?: number;
+}
+
+interface State {
+  currentEnthusiasm: number;
+}
+
+class Hello extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { currentEnthusiasm: props.enthusiasmLevel || 1 };
+  }
+
+  onIncrement = () => this.updateEnthusiasm(this.state.currentEnthusiasm + 1);
+  onDecrement = () => this.updateEnthusiasm(this.state.currentEnthusiasm - 1);
+
+  render() {
+    const { name } = this.props;
+
+    if (this.state.currentEnthusiasm <= 0) {
+      throw new Error('You could be a little more enthusiastic. :D');
+    }
+
+    return (
+      <div className="hello">
+        <div className="greeting">
+          Hello {name + getExclamationMarks(this.state.currentEnthusiasm)}
+        </div>
+        <button onClick={this.onDecrement}>-</button>
+        <button onClick={this.onIncrement}>+</button>
+      </div>
+    );
+  }
+
+  updateEnthusiasm(currentEnthusiasm: number) {
+    this.setState({ currentEnthusiasm });
+  }
+}
+
+export default Hello;
+
+function getExclamationMarks(numChars: number) {
+  return Array(numChars + 1).join('!');
+}
+```
+
+Notice:
+
+1. Much like with `Props`, we had to define a new type for our state: `State`.
+1. To update state in React, we use `this.setState` - we don't set it directly except in the constructor. `setState` only takes the properties we're interested in updating and our component will re-render as appropriate.
+1. We're using class property initializers with arrow functions (e.g. `onIncrement = () => ...`).
+  * Declaring these as arrow functions avoids issues with orphaned uses of `this`.
+  * Setting them as instance properties creates them only once - a common mistake is to initialize them in the `render` method which allocates closures one every call to `render`.
+
+We won't use this stateful component any further in this starter.
+Stateful components are great for creating components that focus solely on presenting content (as opposed to handling core application state).
+In some contexts, it can be used for handling your entire application's state, with one central component passing down functions that can call `setState` appropriately; however, for much larger applications, a dedicated state manager might be preferable (as we'll discuss below).
 
 # Adding style 😎
 
@@ -254,15 +407,25 @@ Enzyme is similar, but builds on jsdom and makes it easier to make certain queri
 Let's install it as a development-time dependency.
 
 ```sh
-npm install -D enzyme @types/enzyme react-addons-test-utils
+npm install -D enzyme @types/enzyme enzyme-adapter-react-16 @types/enzyme-adapter-react-16 react-test-renderer
 ```
 
 Notice we installed packages `enzyme` as well as `@types/enzyme`.
 The `enzyme` package refers to the package containing JavaScript code that actually gets run, while `@types/enzyme` is a package that contains declaration files (`.d.ts` files) so that TypeScript can understand how you can use Enzyme.
 You can learn more about `@types` packages [here](https://www.typescriptlang.org/docs/handbook/declaration-files/consumption.html).
 
-We also had to install `react-addons-test-utils`.
+We also had to install `enzyme-adapter-react-16 and react-test-renderer`.
 This is something `enzyme` expects to be installed.
+
+Before writing the first test, we have to configure Enzyme to use an adapter for React 16.
+We'll create a file called `src/setupTests.ts` that is automatically loaded when running tests:
+
+```ts
+import * as enzyme from 'enzyme';
+import * as Adapter from 'enzyme-adapter-react-16';
+
+enzyme.configure({ adapter: new Adapter() });
+```
 
 Now that we've got Enzyme set up, let's start writing our test!
 Let's create a file named `src/components/Hello.test.tsx`, adjacent to our `Hello.tsx` file from earlier.
@@ -312,10 +475,11 @@ But if you're developing an app that's more interactive, then you may need to ad
 ## State management in general
 
 On its own, React is a useful library for creating composable views.
-However, React doesn't come with any facility for synchronizing data between your application.
+However, React doesn't prescribe any specific way of synchronizing data throughout your application.
 As far as a React component is concerned, data flows down through its children through the props you specify on each element.
+Some of those props might be functions that update the state one way or another, but how that happens is an open question.
 
-Because React on its own does not provide built-in support for state management, the React community uses libraries like Redux and MobX.
+Because React on its own does not focus on application state management, the React community uses libraries like Redux and MobX.
 
 [Redux](http://redux.js.org) relies on synchronizing data through a centralized and immutable store of data, and updates to that data will trigger a re-render of our application.
 State is updated in an immutable fashion by sending explicit action messages which must be handled by functions called reducers.
@@ -387,7 +551,7 @@ This `const`/`type` pattern allows us to use TypeScript's string literal types i
 Next, we'll create a set of actions and functions that can create these actions in `src/actions/index.tsx`.
 
 ```ts
-import * as constants from '../constants'
+import * as constants from '../constants';
 
 export interface IncrementEnthusiasm {
     type: constants.INCREMENT_ENTHUSIASM;
@@ -450,7 +614,7 @@ It's important that the `enthusiasmLevel` property come last, since otherwise it
 
 You may want to write a few tests for your reducer.
 Since reducers are pure functions, they can be passed arbitrary data.
-For every input, reducers can tested by checking their newly produced state.
+For every input, reducers can be tested by checking their newly produced state.
 Consider looking into Jest's [toEqual](https://facebook.github.io/jest/docs/expect.html#toequalvalue) method to accomplish this.
 
 ## Making a container
@@ -643,4 +807,4 @@ If you want to eject at some point, you may need to know a little bit more about
 You can check out our [React & Webpack walkthrough here](https://www.typescriptlang.org/docs/handbook/react-&-webpack.html).
 
 At some point you might need routing.
-There are several solutons, but [react-router](https://github.com/ReactTraining/react-router) is probably the most popular for Redux projects, and is often used in conjunction with [react-router-redux](https://github.com/reactjs/react-router-redux).
+There are several solutions, but [react-router](https://github.com/ReactTraining/react-router) is probably the most popular for Redux projects, and is often used in conjunction with [react-router-redux](https://github.com/reactjs/react-router-redux).
